@@ -6,7 +6,6 @@ param appServicePlanId string
 param runtimeName string = 'dotnetcore'
 param runtimeVersion string = '6.0'
 
-param applicationInsightsName string = ''
 param appSettings object = {}
 
 resource appService 'Microsoft.Web/sites@2022-09-01' = {
@@ -31,19 +30,6 @@ resource appService 'Microsoft.Web/sites@2022-09-01' = {
     }
     httpsOnly: true
   }
-}
-
-// Add Application Insights integration if provided
-resource appServiceConfig 'Microsoft.Web/sites/config@2022-09-01' = if (!empty(applicationInsightsName)) {
-  name: 'appsettings'
-  parent: appService
-  properties: {
-    APPLICATIONINSIGHTS_CONNECTION_STRING: applicationInsights.properties.ConnectionString
-  }
-}
-
-resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = if (!empty(applicationInsightsName)) {
-  name: applicationInsightsName
 }
 
 output name string = appService.name

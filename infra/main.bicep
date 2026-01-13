@@ -9,6 +9,7 @@ param environmentName string
 @description('Primary location for all resources')
 param location string = 'westus3'
 
+#disable-next-line no-unused-params // Reserved for future use to assign additional roles
 @description('Id of the user or app to assign application roles')
 param principalId string = ''
 
@@ -79,10 +80,10 @@ module web './core/host/appservice.bicep' = {
     appServicePlanId: appServicePlan.outputs.id
     runtimeName: 'dotnetcore'
     runtimeVersion: '6.0'
-    applicationInsightsName: monitoring.outputs.applicationInsightsName
     appSettings: {
       DOCKER_REGISTRY_SERVER_URL: containerRegistry.outputs.loginServer
       WEBSITES_ENABLE_APP_SERVICE_STORAGE: 'false'
+      APPLICATIONINSIGHTS_CONNECTION_STRING: monitoring.outputs.applicationInsightsConnectionString
     }
   }
 }

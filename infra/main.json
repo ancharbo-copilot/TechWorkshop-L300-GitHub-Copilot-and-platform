@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.39.26.7824",
-      "templateHash": "16944487953816494145"
+      "templateHash": "12319293755848940514"
     }
   },
   "parameters": {
@@ -398,13 +398,11 @@
           "runtimeVersion": {
             "value": "6.0"
           },
-          "applicationInsightsName": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(not(empty(parameters('resourceGroupName'))), parameters('resourceGroupName'), format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName')))), 'Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.applicationInsightsName.value]"
-          },
           "appSettings": {
             "value": {
               "DOCKER_REGISTRY_SERVER_URL": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(not(empty(parameters('resourceGroupName'))), parameters('resourceGroupName'), format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName')))), 'Microsoft.Resources/deployments', 'container-registry'), '2025-04-01').outputs.loginServer.value]",
-              "WEBSITES_ENABLE_APP_SERVICE_STORAGE": "false"
+              "WEBSITES_ENABLE_APP_SERVICE_STORAGE": "false",
+              "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(not(empty(parameters('resourceGroupName'))), parameters('resourceGroupName'), format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName')))), 'Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.applicationInsightsConnectionString.value]"
             }
           }
         },
@@ -415,7 +413,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "6669175918142040209"
+              "templateHash": "7622436633263637112"
             }
           },
           "parameters": {
@@ -440,10 +438,6 @@
             "runtimeVersion": {
               "type": "string",
               "defaultValue": "6.0"
-            },
-            "applicationInsightsName": {
-              "type": "string",
-              "defaultValue": ""
             },
             "appSettings": {
               "type": "object",
@@ -479,18 +473,6 @@
                 },
                 "httpsOnly": true
               }
-            },
-            {
-              "condition": "[not(empty(parameters('applicationInsightsName')))]",
-              "type": "Microsoft.Web/sites/config",
-              "apiVersion": "2022-09-01",
-              "name": "[format('{0}/{1}', parameters('name'), 'appsettings')]",
-              "properties": {
-                "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', parameters('applicationInsightsName')), '2020-02-02').ConnectionString]"
-              },
-              "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('name'))]"
-              ]
             }
           ],
           "outputs": {
