@@ -25,7 +25,7 @@ param deployments array = [
     model: {
       format: 'OpenAI'
       name: 'phi-3'
-      version: 'latest'
+      version: '3.5-mini-4k-instruct'
     }
     sku: {
       name: 'Standard'
