@@ -101,6 +101,12 @@ secrets.json
 *.pem
 *.key
 
+# Azure Developer CLI
+.azure/
+
+# Bicep outputs
+*.bicep.output.json
+
 # Database
 *.db
 *.sqlite
