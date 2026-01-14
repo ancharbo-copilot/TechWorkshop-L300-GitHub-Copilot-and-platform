@@ -9,8 +9,8 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: ${{ secrets.AZURE_WEBAPP_NAME || vars.AZURE_WEBAPP_NAME }}
-  ACR_NAME: ${{ secrets.ACR_NAME || vars.ACR_NAME }}
+  AZURE_WEBAPP_NAME: ${{ secrets.AZURE_WEBAPP_NAME }}
+  ACR_NAME: ${{ secrets.ACR_NAME }}
   IMAGE_NAME: zavastore
 
 jobs:
@@ -23,12 +23,12 @@ jobs:
 
     - name: Validate required variables
       run: |
-        if [ -z "${{ vars.AZURE_WEBAPP_NAME }}" ]; then
-          echo "::error::AZURE_WEBAPP_NAME variable is not set. Please configure it in GitHub repository settings."
+        if [ -z "$AZURE_WEBAPP_NAME" ]; then
+          echo "::error::AZURE_WEBAPP_NAME is not set. Please configure it in GitHub repository settings."
           exit 1
         fi
-        if [ -z "${{ vars.ACR_NAME }}" ]; then
-          echo "::error::ACR_NAME variable is not set. Please configure it in GitHub repository settings."
+        if [ -z "$ACR_NAME" ]; then
+          echo "::error::ACR_NAME is not set. Please configure it in GitHub repository settings."
           exit 1
         fi
         echo "✅ All required variables are configured"
