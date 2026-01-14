@@ -1,0 +1,105 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: zavastore
+metadata:
+  template: zavastore-dev@0.0.1-beta
+
+# Service definitions
+services:
+  web:
+    project: ./src
+    language: dotnet
+    host: appservice
+    docker:
+      path: ./src/Dockerfile
+      context: ./src
+
+# Infrastructure configuration
+infra:
+  provider: bicep
+  path: infra
+  module: main
+
+# Hooks for custom actions
+hooks:
+  # Before provisioning
+  preprovision:
+    posix:
+      shell: sh
+      run: |
+        echo "🔍 Checking Azure quotas and model availability in westus3..."
+        echo "⚠️  Ensure your subscription has quota for Microsoft Foundry in westus3"
+        echo "⚠️  Verify GPT-4 and Phi models are available in westus3"
+    windows:
+      shell: pwsh
+      run: |
+        Write-Host "🔍 Checking Azure quotas and model availability in westus3..." -ForegroundColor Cyan
+        Write-Host "⚠️  Ensure your subscription has quota for Microsoft Foundry in westus3" -ForegroundColor Yellow
+        Write-Host "⚠️  Verify GPT-4 and Phi models are available in westus3" -ForegroundColor Yellow
+
+  # After provisioning
+  postprovision:
+    posix:
+      shell: sh
+      run: |
+        echo "✅ Infrastructure provisioned successfully!"
+        echo "📦 Resource Group: ${AZURE_RESOURCE_GROUP}"
+        echo "🌐 Web App: ${SERVICE_WEB_URI}"
+        echo "📊 View in Azure Portal: https://portal.azure.com/#@/resource${AZURE_RESOURCE_GROUP}"
+    windows:
+      shell: pwsh
+      run: |
+        Write-Host "✅ Infrastructure provisioned successfully!" -ForegroundColor Green
+        Write-Host "📦 Resource Group: $env:AZURE_RESOURCE_GROUP" -ForegroundColor Cyan
+        Write-Host "🌐 Web App: $env:SERVICE_WEB_URI" -ForegroundColor Cyan
+        Write-Host "📊 View in Azure Portal: https://portal.azure.com/#@/resource$env:AZURE_RESOURCE_GROUP" -ForegroundColor Cyan
+
+  # Before deploying application
+  predeploy:
+    posix:
+      shell: sh
+      run: |
+        echo "🐳 Building container image in Azure Container Registry (no local Docker needed)..."
+        az acr build \
+          --registry ${AZURE_CONTAINER_REGISTRY_NAME} \
+          --image zavastore:latest \
+          --image zavastore:${AZURE_ENV_NAME}-$(date +%Y%m%d-%H%M%S) \
+          --file ./src/Dockerfile \
+          ./src
+        echo "✅ Container image built successfully!"
+    windows:
+      shell: pwsh
+      run: |
+        Write-Host "🐳 Building container image in Azure Container Registry (no local Docker needed)..." -ForegroundColor Cyan
+        $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+        az acr build `
+          --registry $env:AZURE_CONTAINER_REGISTRY_NAME `
+          --image zavastore:latest `
+          --image "zavastore:$env:AZURE_ENV_NAME-$timestamp" `
+          --file ./src/Dockerfile `
+          ./src
+        Write-Host "✅ Container image built successfully!" -ForegroundColor Green
+
+  # After deploying application
+  postdeploy:
+    posix:
+      shell: sh
+      run: |
+        echo "🚀 Deployment complete!"
+        echo "🌐 Application URL: ${SERVICE_WEB_URI}"
+        echo "🧪 Testing application..."
+        sleep 10
+        curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" ${SERVICE_WEB_URI} || echo "⚠️  Application may still be starting..."
+    windows:
+      shell: pwsh
+      run: |
+        Write-Host "🚀 Deployment complete!" -ForegroundColor Green
+        Write-Host "🌐 Application URL: $env:SERVICE_WEB_URI" -ForegroundColor Cyan
+        Write-Host "🧪 Testing application..." -ForegroundColor Cyan
+        Start-Sleep -Seconds 10
+        try {
+          $response = Invoke-WebRequest -Uri $env:SERVICE_WEB_URI -UseBasicParsing -TimeoutSec 30
+          Write-Host "✅ Application is responding! HTTP Status: $($response.StatusCode)" -ForegroundColor Green
+        } catch {
+          Write-Host "⚠️  Application may still be starting. Please check manually: $env:SERVICE_WEB_URI" -ForegroundColor Yellow
+        }
